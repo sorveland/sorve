@@ -48,15 +48,8 @@ jobs:
               echo "Image directory for platform $platform does not exist"
             fi
           done
-
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Clean up
         run: |
           rm -rf $temp_dir
-
-      - name: Upload Release Artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Uploading release assets"
-          gh auth login --with-token <<< $GITHUB_TOKEN
-          gh release upload ${{ github.event.release.tag_name }} sorve-* --clobber
