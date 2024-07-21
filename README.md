@@ -30,7 +30,7 @@ Current version: 0.0.1
 
 2. Build the project:
    ```
-   crystal build src/sorve.cr -o sorve
+   crystal build sorve/src/sorve.cr -O3 -o sorve
    ```
 
 ## Usage
