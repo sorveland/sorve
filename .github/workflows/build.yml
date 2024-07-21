@@ -32,14 +32,14 @@ jobs:
             echo "Building Docker image for platform $platform..."
             docker buildx build --platform $platform \
               -t sorveland/sorve:latest-$platform_short \
-              --output type=local,dest=$temp_dir/images/linux_$platform_short .
+              --output type=local,dest=$temp_dir/images .
 
             image_dir=$temp_dir/images/linux_$platform_short
             echo "Processing image for platform $platform..."
 
             if [ -d "$image_dir" ]; then
               # Copy binary to the working directory
-              cp $image_dir/workspace/dist/sorve-$platform_short-linux .
+              cp $image_dir/workspace/dist/sorve-linux ./sorve-$platform_short-linux
 
               # Add binaries to the release artifacts
               echo "Adding $platform_short binary to release"
