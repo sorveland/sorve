@@ -14,7 +14,7 @@ RUN apk update && apk add --no-cache build-base
 RUN mkdir -p /workspace/dist
 
 # Install deps
-RUN shards && cd sorve && shards && cd ..
+RUN shards
 
 # Build it
 RUN crystal build --release --verbose -O3 --single-module -t -s --threads $(nproc) --static --progress sorve/src/sorve.cr -o /workspace/dist/sorve-linux
