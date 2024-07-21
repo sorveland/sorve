@@ -13,7 +13,10 @@ RUN apk update && apk add --no-cache build-base
 # Create a directory for the build output
 RUN mkdir -p /workspace/dist
 
-# Detect the architecture and set it as an environment variable
+# Install deps
+RUN shards && cd sorve && shards && cd ..
+
+# Build it
 RUN crystal build --release --verbose -O3 --single-module -t -s --threads $(nproc) --static --progress sorve/src/sorve.cr -o /workspace/dist/sorve-linux
 
 # Specify the entry point (if required) or just set the default CMD to nothing
