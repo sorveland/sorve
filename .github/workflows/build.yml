@@ -25,14 +25,12 @@ jobs:
         id: build
         run: |
           temp_dir=$(mktemp -d)
-          
-          # Use platforms output from setup-qemu and remove 'linux/' prefix
-          platforms="${{ steps.setup-qemu.outputs.platforms }}"
+          VERSION="${{github.event.release.tag_name}}"
           
           echo "Building Docker images for platforms: $platforms"
-          for platform in $(echo $platforms | tr "," "\n"); do
+          for platform in linux/amd64 linux/arm64; do
             platform_short=$(echo $platform | sed 's/linux\///')
-            echo "(${{github.event.release.tag_name}}) Building Docker image for platform $platform..."
+            echo "(v$VERSION) Building Docker image for platform $platform..."
             docker buildx build --platform $platform \
               -t sorveland/sorve:latest-$platform_short \
               --output type=local,dest=$temp_dir/images .
@@ -42,11 +40,11 @@ jobs:
 
             if [ -d "$image_dir" ]; then
               # Copy binary to the working directory
-              cp $image_dir/workspace/dist/sorve-linux ./sorve-$platform_short-linux
+              cp $image_dir/workspace/dist/sorve-linux ./sorve-v$VERSION-$platform_short-linux
 
               # Add binaries to the release artifacts
               echo "Adding $platform_short binary to release"
-              gh release upload ${{ github.event.release.tag_name }} sorve-$platform_short-linux --clobber || true
+              gh release upload $VERSION sorve-v$VERSION-$platform_short-linux --clobber || true
             else
               echo "Image directory for platform $platform does not exist"
             fi
