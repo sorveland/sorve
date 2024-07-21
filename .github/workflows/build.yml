@@ -34,7 +34,7 @@ jobs:
               -t sorveland/sorve:latest-$platform_short \
               --output type=local,dest=$temp_dir/images .
 
-            image_dir=$temp_dir/images/linux_$platform_short
+            image_dir=$temp_dir/images
             echo "Processing image for platform $platform..."
 
             if [ -d "$image_dir" ]; then
