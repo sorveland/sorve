@@ -4,6 +4,15 @@ version: 0.0.1
 authors:
   - Rajdeep Malakar <rajdeepm.dev@gmail.com>
 
+targets:
+  sorve:
+    main: src/sorve.cr
+
 crystal: '>= 1.13.0'
+
+dependencies:
+  toml:
+    github: crystal-community/toml.cr
+    branch: master
 
 license: MPL-2.0
