@@ -74,14 +74,15 @@ Command-line options take precedence over configuration file settings.
 ```
 sorve/
 ├── lib/
-│   └── sorve.cr
-├── src/
-│   └── sorve.cr
+│   └── libsorve.cr
+├── sorve/
+│   └── src/
+│       └── sorve.cr
 └── README.md
 ```
 
-- `lib/sorve.cr`: Contains the core functionality of Sorve, including utility functions, configuration handling, and HTML generation.
-- `src/sorve.cr`: The main entry point of the application, responsible for setting up and running the server.
+- `lib/libsorve.cr`: Contains the core functionality of Sorve, including utility functions, configuration handling, and HTML generation.
+- `sorve/src/sorve.cr`: The main entry point of the application, responsible for setting up and running the server.
 
 ## Modules
 
