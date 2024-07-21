@@ -1,8 +1,5 @@
 name: Build and Publish Release Artifacts
 
-permissions:
-    contents: write
-
 on:
   release:
     types: [published]
@@ -26,27 +23,27 @@ jobs:
         run: |
           temp_dir=$(mktemp -d)
           
-          # Use platforms output from setup-qemu
+          # Use platforms output from setup-qemu and remove 'linux/' prefix
           platforms="${{ steps.setup-qemu.outputs.platforms }}"
-
+          
           echo "Building Docker images for platforms: $platforms"
           for platform in $(echo $platforms | tr "," "\n"); do
-            platform=$(echo $platform | sed "s/linux\//g")
+            platform_short=$(echo $platform | sed 's/linux\///')
             echo "Building Docker image for platform $platform..."
-            docker buildx build --platform linux/$platform \
-              -t sorveland/sorve:latest-$platform \
-              --output type=local,dest=$temp_dir/images .
+            docker buildx build --platform $platform \
+              -t sorveland/sorve:latest-$platform_short \
+              --output type=local,dest=$temp_dir/images/linux_$platform_short .
 
-            image_dir=$temp_dir/images/linux_$platform
+            image_dir=$temp_dir/images/linux_$platform_short
             echo "Processing image for platform $platform..."
 
             if [ -d "$image_dir" ]; then
               # Copy binary to the working directory
-              cp $image_dir/workspace/dist/sorve-linux ./sorve-"$platform"-linux
+              cp $image_dir/workspace/dist/sorve-$platform_short-linux .
 
               # Add binaries to the release artifacts
-              echo "Adding $platform binary to release"
-              gh release upload ${{ github.event.release.tag_name }} sorve-$platform-linux --clobber || true
+              echo "Adding $platform_short binary to release"
+              gh release upload ${{ github.event.release.tag_name }} sorve-$platform_short-linux --clobber || true
             else
               echo "Image directory for platform $platform does not exist"
             fi
@@ -61,4 +58,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Uploading release assets"
+          gh auth login --with-token <<< $GITHUB_TOKEN
           gh release upload ${{ github.event.release.tag_name }} sorve-* --clobber
