@@ -1,0 +1,5 @@
+/docs/
+**/lib/toml/
+/bin/
+/.shards/
+*.dwarf
