@@ -14,7 +14,7 @@ RUN apk update && apk add --no-cache build-base
 RUN mkdir -p /workspace/dist
 
 # Detect the architecture and set it as an environment variable
-crystal build --release --verbose -O3 --single-module -t -s --threads $(nproc) --static --progress sorve/src/sorve.cr -o /workspace/dist/sorve-linux
+RUN crystal build --release --verbose -O3 --single-module -t -s --threads $(nproc) --static --progress sorve/src/sorve.cr -o /workspace/dist/sorve-linux
 
 # Specify the entry point (if required) or just set the default CMD to nothing
 CMD []
