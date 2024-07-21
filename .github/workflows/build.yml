@@ -31,8 +31,9 @@ jobs:
 
           echo "Building Docker images for platforms: $platforms"
           for platform in $(echo $platforms | tr "," "\n"); do
+            platform=$(echo $platform | sed "s/linux\//g")
             echo "Building Docker image for platform $platform..."
-            docker buildx build --platform $platform \
+            docker buildx build --platform linux/$platform \
               -t sorveland/sorve:latest-$platform \
               --output type=local,dest=$temp_dir/images .
 
