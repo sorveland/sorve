@@ -1,10 +1,29 @@
 # Sorve
 
+<!--toc:start-->
+- [Sorve](#sorve)
+  - [Version](#version)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Command-line Options](#command-line-options)
+    - [Configuration File](#configuration-file)
+  - [Project Structure](#project-structure)
+  - [Modules](#modules)
+    - [Utils](#utils)
+    - [Config](#config)
+    - [HTMLGenerator](#htmlgenerator)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Contact](#contact)
+<!--toc:end-->
+
 Sorve is a lightweight, configurable static file server written in Crystal. It's designed to be easy to use and customize, making it ideal for local development or simple hosting needs.
 
 ## Version
 
-Current version: 0.0.1
+Current version: 0.0.2
 
 ## Features
 

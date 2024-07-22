@@ -5,10 +5,20 @@ require "time"
 require "toml"
 
 module Sorve
-  VERSION = "0.0.1"
+  VERSION = "0.0.2"
 
   module Utils
     extend self
+
+    ANSI_COLORS = {
+      reset:  "\e[0m",
+      red:    "\e[31m",
+      green:  "\e[32m",
+      yellow: "\e[33m",
+      blue:   "\e[34m",
+      magenta: "\e[35m",
+      cyan:   "\e[36m",
+    }
 
     def status_text(code)
       case code
@@ -27,38 +37,40 @@ module Sorve
       path.starts_with?(root) ? path.sub(root, "/") : path
     end
 
-    def log_request(request, status_code)
+    def log_request(request, status_code, extra = "")
       status_color, status_suffix = case status_code
-                                    when 200..299 then ["\e[32m", ""]
-                                    when 300..399 then ["\e[33m", ""]
-                                    when 400..499 then ["\e[31m", ""]
-                                    when 500..599 then ["\e[31m", " ❌"]
-                                    else               ["\e[33m", ""]
+                                    when 200..299 then [ANSI_COLORS[:green], ""]
+                                    when 300..399 then [ANSI_COLORS[:yellow], ""]
+                                    when 400..499 then [ANSI_COLORS[:red], ""]
+                                    when 500..599 then [ANSI_COLORS[:red], " ❌"]
+                                    else               [ANSI_COLORS[:yellow], ""]
                                     end
-      reset_color = "\e[0m"
+      reset_color = ANSI_COLORS[:reset]
       status_text_str = status_text(status_code)
       timestamp = Time.local.to_s
-      puts "#{timestamp} - #{request.remote_address} - #{request.method} #{request.path} - #{status_color}#{status_code} #{status_text_str}#{status_suffix}#{reset_color}"
+      puts "#{ANSI_COLORS[:cyan]}[sorve::server INFO]#{reset_color} #{timestamp} - #{request.remote_address} - #{request.method} #{request.path} - #{status_color}#{status_code} #{status_text_str}#{status_suffix}#{reset_color}#{extra}"
     end
 
     def resolve_path(path)
       File.expand_path(path, Dir.current)
     end
 
-    def format_duration(seconds : Int64) : String
-      case seconds
-      when 0..60 then "#{seconds}s"
-      when 61..3600 then "#{seconds / 60}m"
-      when 3601..86400 then "#{seconds / 3600}h"
-      when 86401..2_592_000 then "#{seconds / 86400}d"
-      when 2_592_001..31_557_600 then "#{seconds / 2_592_000}mo"
-      else "#{seconds / 31_557_600}y"
+    def format_duration(microseconds : Int64) : String
+      case microseconds
+      when 0..999 then "#{microseconds}μs"
+      when 1_000..999_999 then "#{microseconds / 1000}ms"
+      when 1_000_000..59_999_999 then "#{microseconds / 1_000_000}s"
+      when 60_000_000..3_599_999_999 then "#{microseconds / 60_000_000}m"
+      when 3_600_000_000..86_399_999_999 then "#{microseconds / 3_600_000_000}h"
+      when 86_400_000_000..2_591_999_999_999 then "#{microseconds / 86_400_000_000}d"
+      when 2_592_000_000_000..31_557_599_999_999 then "#{microseconds / 2_592_000_000_000}mo"
+      else "#{microseconds / 31_557_600_000_000}y"
       end
     end
 
-    def elapsed_time
-      seconds = (Time.local - START_TIME).to_i
-      format_duration(seconds)
+    def elapsed_time(since : Time)
+      microseconds = (Time.local - since).total_microseconds.to_i64
+      format_duration(microseconds)
     end
   end
 
@@ -69,7 +81,7 @@ module Sorve
       if File.exists?(config_path)
         TOML.parse(File.read(config_path))
       else
-        raise "Unable to load config file .sorve.toml in #{config_path}"
+        {} of String => TOML::Table
       end
     end
 
@@ -82,7 +94,6 @@ module Sorve
     extend self
 
     def server_error(err : String | Nil)
-      elapsed = Utils.elapsed_time
       <<-EOF
         <!DOCTYPE html>
         <html lang="en">
@@ -126,14 +137,13 @@ module Sorve
             <p>Internal Server Error</p>
             <p>Sorry, something went wrong on our end. Please try again later or <a href="/">return to the homepage</a>.</p>
             <p>#{err}</p>
-            <footer>Served by <strong>Sorve #{VERSION}</strong> in #{elapsed}</footer>
+            <footer>Served by <strong>Sorve #{VERSION}</strong></footer>
         </body>
         </html>
       EOF
     end
 
     def not_found_error
-      elapsed = Utils.elapsed_time
       <<-EOF
         <!DOCTYPE html>
         <html lang="en">
@@ -181,14 +191,13 @@ module Sorve
             <p>Oops! The page you're looking for doesn't exist.</p>
             <p>Maybe you got lost in the void? <a href="/">Return to the homepage</a></p>
             <img src="https://media.giphy.com/media/26ufm5b9KcsRzX8OW/giphy.gif" alt="Lost in Space">
-            <footer>Served by <strong>Sorve #{VERSION}</strong> in #{elapsed}</footer>
+            <footer>Served by <strong>Sorve #{VERSION}</strong></footer>
         </body>
         </html>
       EOF
     end
 
     def list_directory(path : String, show_relative_path : Bool, request : HTTP::Request, root : String)
-      elapsed = Utils.elapsed_time
       base_path = show_relative_path ? Utils.relative_path(root, path) : path
       content = Dir.children(path).map do |entry|
         full_path = File.join(path, entry)
@@ -244,13 +253,10 @@ module Sorve
             <ul>
               #{content}
             </ul>
-            <footer>Served by <strong>Sorve #{VERSION}</strong> in #{elapsed}</footer>
+            <footer>Served by <strong>Sorve #{VERSION}</strong></footer>
         </body>
         </html>
       EOF
     end
   end
 end
-
-# Set the server start time
-START_TIME = Time.local
